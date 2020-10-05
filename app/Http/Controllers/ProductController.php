@@ -8,6 +8,7 @@ use App\Product;
 use App\Category;
 use App\PrdtByCtgr;
 use App\Offer;
+use App\PrdtByOffer;
 
 class ProductController extends Controller{
     /**
@@ -204,7 +205,7 @@ class ProductController extends Controller{
      */
     public function removeCtgr($id){
     	$prdtByCtgr = PrdtByCtgr::find($id);
-    	$product = Product::find($prdtByCtgr->product->id);
+    	$product = Product::find($prdtByCtgr->product_id);
         if($product->shop === auth()->user()->id){
         	$prdtByCtgr->delete();
 	        return response()->json([
@@ -225,7 +226,7 @@ class ProductController extends Controller{
             'until' => 'required',
             'price' => 'required'
         ]);
-        if(auth()->user()->type != 'shop'){
+        if(auth()->user()->type != 'admin'){
         	return response()->json([
 	            'message' => 'Cannot create a offer!'
 	        ], 201);
@@ -285,5 +286,56 @@ class ProductController extends Controller{
     	return Offer::where('status','=',1)
     				 ->orderBy('until','desc')
     				 ->get();
+    }
+    /**
+     * Products by Offer
+     */
+    public function offersProducts($id, Request $request){
+    	return Product::join('prdt_by_offer','prdt_by_offer.product_id','=','products.id')
+    				  ->where('prdt_by_offer.offer_id','=',$id)
+    				  ->select('products.*')
+    				  ->orderBy('name','desc')
+    				  ->get();
+    }
+    /**
+     * Add a product to an offer
+     */
+    public function addToOffer(Request $request){
+        $request->validate([
+            'offer' => 'required',
+            'product' => 'required'
+        ]);
+        $product = Product::find($request->product);
+        $offer = Offer::find($request->offer);        
+        if(!((isset($product) && isset($offer)) || auth()->user()->type == 'admin')){
+        	return response()->json([
+	            'message' => 'Cannot add!'
+	        ], 201);
+        }
+        PrdtByOffer::create([
+            'product_id' => $request->product,
+            'offer_id' => $request->offer
+        ]);
+
+        return response()->json([
+            'message' => 'Successfully added product!'
+        ], 201);
+    }
+    /**
+     * Remove a product to an Offer
+     */
+    public function removeToOffer($id){
+    	$prdtByOffer = PrdtByOffer::find($id);
+    	$product = Product::find($prdtByOffer->product_id);
+        if(auth()->user()->type == 'admin'){
+        	$prdtByOffer->delete();
+	        return response()->json([
+	            'message' => 'Successfully removed product!'
+	        ], 201);
+    	}else{
+    		return response()->json([
+	            'message' => 'Unauthorized to removed product!'
+	        ], 401);
+    	}
     }
 }

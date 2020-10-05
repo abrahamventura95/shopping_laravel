@@ -86,5 +86,8 @@ Route::group([
         Route::post('', 'ProductController@createOffer');
         Route::put('{id}', 'ProductController@editOffer');
         Route::delete('{id}', 'ProductController@deleteOffer');
+        Route::post('add', 'ProductController@addToOffer');
+        Route::delete('remove/{id}', 'ProductController@removeToOffer');
+        Route::get('products/{id}', 'ProductController@offersProducts');
     });
 });
