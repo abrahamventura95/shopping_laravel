@@ -42,3 +42,19 @@ Route::group([
         Route::delete('{id}', 'UserController@delete');
     });
 });
+
+//Product
+Route::group([
+    'prefix' => 'product'
+], function () {
+    Route::group([
+      'middleware' => 'auth:api'
+    ], function() {
+        Route::get('all', 'ProductController@products');
+        Route::get('shop/{id}', 'ProductController@byShop');
+        Route::get('{id}', 'ProductController@show');
+        Route::post('', 'ProductController@create');
+        Route::put('{id}', 'ProductController@edit');
+        Route::delete('{id}', 'ProductController@delete');
+    });
+});
