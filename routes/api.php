@@ -52,6 +52,7 @@ Route::group([
     ], function() {
         Route::get('all', 'ProductController@products');
         Route::get('shop/{id}', 'ProductController@byShop');
+        Route::get('category/{category}', 'ProductController@byCategory');
         Route::get('{id}', 'ProductController@show');
         Route::post('', 'ProductController@create');
         Route::put('{id}', 'ProductController@edit');

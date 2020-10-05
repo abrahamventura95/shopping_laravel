@@ -26,6 +26,17 @@ class ProductController extends Controller{
     			   	  ->get();
     }
     /**
+     * Show products by category
+     */
+    public function byCategory($category, Request $request){
+    	return Product::join('prdt_by_ctg','prdt_by_ctg.product_id','=','products.id')
+    				  ->join('categories','categories.id','=','prdt_by_ctg.category_id')
+    				  ->where('categories.name','LIKE','%'.$category.'%')
+    				  ->select('products.*')
+    			   	  ->orderBy('products.name','desc')
+    			   	  ->get();
+    }
+    /**
      * Show a product
      */
     public function show($id){
