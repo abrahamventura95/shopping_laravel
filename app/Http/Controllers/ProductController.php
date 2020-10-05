@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Product;
 use App\Category;
 use App\PrdtByCtgr;
+use App\Offer;
 
 class ProductController extends Controller{
     /**
@@ -214,5 +215,75 @@ class ProductController extends Controller{
 	            'message' => 'Unauthorized to removed category!'
 	        ], 401);
     	}
+    }
+    //Offers
+    /**
+     * Create a offer
+     */
+    public function createOffer(Request $request){
+        $request->validate([
+            'until' => 'required',
+            'price' => 'required'
+        ]);
+        if(auth()->user()->type != 'shop'){
+        	return response()->json([
+	            'message' => 'Cannot create a offer!'
+	        ], 201);
+        }
+        Offer::create([
+            'until' => $request->until,
+            'price' => $request->price,
+            'status' => $request->status
+        ]);
+
+        return response()->json([
+            'message' => 'Successfully created offer!'
+        ], 201);
+    }
+    /**
+     * Edit a offer
+     */
+    public function editOffer($id, Request $request){
+    	$offer = Offer::find($id);
+    	$request->validate([
+            'status' => 'boolean'
+        ]);
+		if(isset($request->until)){
+		    $offer->until = $request->until; 
+		}
+		if(isset($request->price) && $request->price >= 0){
+		    $offer->price = $request->price; 
+		}
+		if(isset($request->status)){
+		    $offer->status = $request->status; 
+		}
+        if(auth()->user()->type == 'admin'){
+        	$offer->save();
+        }
+        return $offer;
+    }
+    /**
+     * Delete a offer
+     */
+    public function deleteOffer($id){
+    	$offer = Offer::find($id);
+        if(auth()->user()->type == 'admin'){
+        	$offer->delete();
+	        return response()->json([
+	            'message' => 'Successfully deleted offer!'
+	        ], 201);
+    	}else{
+    		return response()->json([
+	            'message' => 'Unauthorized to deleted offer!'
+	        ], 401);
+    	}
+    }
+    /**
+     * Show all offers
+     */
+    public function offers(Request $request){
+    	return Offer::where('status','=',1)
+    				 ->orderBy('until','desc')
+    				 ->get();
     }
 }

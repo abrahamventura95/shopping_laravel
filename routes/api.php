@@ -74,3 +74,17 @@ Route::group([
         Route::delete('remove/{id}', 'ProductController@removeCtgr');
     });
 });
+
+//Category
+Route::group([
+    'prefix' => 'offer'
+], function () {
+    Route::group([
+      'middleware' => 'auth:api'
+    ], function() {
+        Route::get('', 'ProductController@offers');
+        Route::post('', 'ProductController@createOffer');
+        Route::put('{id}', 'ProductController@editOffer');
+        Route::delete('{id}', 'ProductController@deleteOffer');
+    });
+});
