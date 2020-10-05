@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Product;
 use App\Category;
+use App\PrdtByCtgr;
 
 class ProductController extends Controller{
     /**
@@ -26,7 +27,13 @@ class ProductController extends Controller{
      * Show a product
      */
     public function show($id){
-        return Product::find($id);
+    	$product = Product::find($id);
+    	$categories = Category::join('prdt_by_ctg','prdt_by_ctg.category_id','=','categories.id')
+    						  ->where('prdt_by_ctg.product_id','=',$id)
+    						  ->select('categories.*')
+    						  ->get();
+    	$result = array('product' => $product, 'categories' => $categories);
+    	return $result;					  
     }
     /**
      * Create a product
@@ -113,7 +120,7 @@ class ProductController extends Controller{
             'name' => 'required|string|unique:categories',
             'description' => 'required|string'
         ]);
-        if(auth()->user()->type != 'shop'){
+        if(auth()->user()->type != 'admin'){
         	return response()->json([
 	            'message' => 'Cannot create a category!'
 	        ], 201);
@@ -145,7 +152,6 @@ class ProductController extends Controller{
         }
         return $category;
     }
-
     /**
      * Delete a category
      */
@@ -167,5 +173,46 @@ class ProductController extends Controller{
      */
     public function categories(Request $request){
     	return Category::orderBy('name','desc')->get();
+    }
+    /**
+     * Add a category to a product
+     */
+    public function addCtgr(Request $request){
+        $request->validate([
+            'category' => 'required',
+            'product' => 'required'
+        ]);
+        $product = Product::find($request->product);
+        $category = Category::find($request->category);        
+        if(!((isset($product) && isset($category)) || $product->shop != auth()->user()->id)){
+        	return response()->json([
+	            'message' => 'Cannot add!'
+	        ], 201);
+        }
+        PrdtByCtgr::create([
+            'product_id' => $request->product,
+            'category_id' => $request->category
+        ]);
+
+        return response()->json([
+            'message' => 'Successfully added category!'
+        ], 201);
+    }
+    /**
+     * Remove a category
+     */
+    public function removeCtgr($id){
+    	$prdtByCtgr = PrdtByCtgr::find($id);
+    	$product = Product::find($prdtByCtgr->product->id);
+        if($product->shop === auth()->user()->id){
+        	$prdtByCtgr->delete();
+	        return response()->json([
+	            'message' => 'Successfully removed category!'
+	        ], 201);
+    	}else{
+    		return response()->json([
+	            'message' => 'Unauthorized to removed category!'
+	        ], 401);
+    	}
     }
 }

@@ -70,5 +70,7 @@ Route::group([
         Route::post('', 'ProductController@createCtgr');
         Route::put('{id}', 'ProductController@editCtgr');
         Route::delete('{id}', 'ProductController@deleteCtgr');
+        Route::post('add', 'ProductController@addCtgr');
+        Route::delete('remove/{id}', 'ProductController@removeCtgr');
     });
 });
